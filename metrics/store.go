@@ -2,7 +2,6 @@ package metrics
 
 import (
 	"bytes"
-	"regexp"
 	"strconv"
 	"time"
 
@@ -392,10 +391,7 @@ func generateMetricName(envelope *events.Envelope, whichType string) string {
 	} else {
 		name = envelope.GetCounterEvent().GetName()
 	}
-	uuidRegex := "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
-	reg := regexp.MustCompile(uuidRegex)
-	isItValidUuid := reg.MatchString(*envelope.Origin)
-	if isItValidUuid {
+	if utils.IsValidUuid(*envelope.Origin) {
 		if envelope.Tags != nil {
 			for _, tagValue := range envelope.Tags {
 				name = name + utils.NormalizeName(tagValue)
