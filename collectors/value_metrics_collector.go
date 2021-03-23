@@ -48,6 +48,17 @@ func (c ValueMetricsCollector) Collect(ch chan<- prometheus.Metric) {
 		labelValues := []string{valueMetric.Origin, valueMetric.Deployment, valueMetric.Job, valueMetric.Index, valueMetric.IP, valueMetric.Unit}
 
 		for k, v := range valueMetric.Tags {
+			if k == "unit" {
+				if v != valueMetric.Unit && valueMetric.Unit == "" {
+					labelValues[5] = v
+					// Dont add a duplicate unit label from tags and correctly set valueMetric.Unit if unset.
+					// This does not solve all cases where a Tag may match a constLabel however it resolves
+					// https://github.com/bosh-prometheus/firehose_exporter/issues/59 logstore discards with
+					// limited performance impact. log_store is sending metrics with units in the tags but not
+					// correctly populating valueMetric.Unit - likely needs to be fixed in upstream prom-scraper
+					continue
+				}
+			}
 			constLabels = append(constLabels, utils.NormalizeName(k))
 			labelValues = append(labelValues, v)
 		}
