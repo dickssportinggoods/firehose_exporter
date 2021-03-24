@@ -40,9 +40,6 @@ func NewValueMetricsCollector(
 func (c ValueMetricsCollector) Collect(ch chan<- prometheus.Metric) {
 	for _, valueMetric := range c.metricsStore.GetValueMetrics() {
 		metricName := utils.NormalizeName(valueMetric.Origin) + "_" + utils.NormalizeName(valueMetric.Name)
-		if utils.IsValidUuid(valueMetric.Origin) {
-			metricName = "custom_" + utils.NormalizeName(valueMetric.Name)
-		}
 
 		constLabels := []string{"origin", "bosh_deployment", "bosh_job_name", "bosh_job_id", "bosh_job_ip", "unit"}
 		labelValues := []string{valueMetric.Origin, valueMetric.Deployment, valueMetric.Job, valueMetric.Index, valueMetric.IP, valueMetric.Unit}

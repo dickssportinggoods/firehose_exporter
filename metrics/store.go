@@ -2,6 +2,7 @@ package metrics
 
 import (
 	"bytes"
+	"sort"
 	"strconv"
 	"time"
 
@@ -261,6 +262,7 @@ func (s *Store) addCounterEvent(envelope *events.Envelope) {
 	if s.deploymentFilter.Enabled(envelope.GetDeployment()) && s.eventFilter.Enabled(envelope) {
 		s.internalMetrics.IncrementInt64(TotalCounterEventsProcessedKey, 1)
 
+		updateCustomMetricOrigin(envelope)
 		counterEvent := &CounterEvent{
 			Origin:     envelope.GetOrigin(),
 			Timestamp:  envelope.GetTimestamp(),
@@ -336,6 +338,7 @@ func (s *Store) addValueMetric(envelope *events.Envelope) {
 	if s.deploymentFilter.Enabled(envelope.GetDeployment()) && s.eventFilter.Enabled(envelope) {
 		s.internalMetrics.IncrementInt64(TotalValueMetricsProcessedKey, 1)
 
+		updateCustomMetricOrigin(envelope)
 		valueMetric := &ValueMetric{
 			Origin:     envelope.GetOrigin(),
 			Timestamp:  envelope.GetTimestamp(),
@@ -391,13 +394,26 @@ func generateMetricName(envelope *events.Envelope, whichType string) string {
 	} else {
 		name = envelope.GetCounterEvent().GetName()
 	}
-	if utils.IsValidUuid(*envelope.Origin) {
+	if *envelope.Origin == "custom" {
 		if envelope.Tags != nil {
-			for _, tagValue := range envelope.Tags {
-				name = name + utils.NormalizeName(tagValue)
+			// These tags need to be sorted before iterating over them as iterating
+			// over a map results in nondeterministic keys being used as a metricKey.
+			sortedTags := make([]string, 0, len(envelope.Tags))
+			for tag := range envelope.Tags {
+				sortedTags = append(sortedTags, tag)
+			}
+			sort.Strings(sortedTags)
+			for _, tag := range sortedTags {
+				name = name + string([]byte{255}) + utils.NormalizeName(envelope.Tags[tag])
 			}
 		}
 		return name
 	}
 	return name
+}
+
+func updateCustomMetricOrigin(envelope *events.Envelope) {
+	if utils.IsValidUuid(*envelope.Origin) {
+		*envelope.Origin = "custom"
+	}
 }
