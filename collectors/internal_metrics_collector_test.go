@@ -21,6 +21,7 @@ var _ = Describe("InternalMetricsCollector", func() {
 		metricsStore             *metrics.Store
 		metricsExpiration        time.Duration
 		metricsCleanupInterval   time.Duration
+		metricsCustomUuidOrigin  string
 		deploymentFilter         *filters.DeploymentFilter
 		eventFilter              *filters.EventFilter
 		internalMetricsCollector *InternalMetricsCollector
@@ -54,7 +55,8 @@ var _ = Describe("InternalMetricsCollector", func() {
 		environment = "test_environment"
 		deploymentFilter = filters.NewDeploymentFilter([]string{})
 		eventFilter, _ = filters.NewEventFilter([]string{})
-		metricsStore = metrics.NewStore(metricsExpiration, metricsCleanupInterval, deploymentFilter, eventFilter)
+		metricsCustomUuidOrigin = ""
+		metricsStore = metrics.NewStore(metricsExpiration, metricsCleanupInterval, deploymentFilter, eventFilter, metricsCustomUuidOrigin)
 
 		totalEnvelopesReceivedMetric = prometheus.NewGauge(
 			prometheus.GaugeOpts{

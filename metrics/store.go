@@ -18,6 +18,7 @@ type Store struct {
 	metricsCleanupInterval time.Duration
 	deploymentFilter       *filters.DeploymentFilter
 	eventFilter            *filters.EventFilter
+	customUuidOrigin       string
 	internalMetrics        *cache.Cache
 	containerMetrics       *cache.Cache
 	counterEvents          *cache.Cache
@@ -30,6 +31,7 @@ func NewStore(
 	metricsCleanupInterval time.Duration,
 	deploymentFilter *filters.DeploymentFilter,
 	eventFilter *filters.EventFilter,
+	customUuidOrigin string,
 ) *Store {
 	internalMetrics := cache.New(metricsExpiration, metricsCleanupInterval)
 	containerMetrics := cache.New(metricsExpiration, metricsCleanupInterval)
@@ -42,6 +44,7 @@ func NewStore(
 		metricsCleanupInterval: metricsCleanupInterval,
 		deploymentFilter:       deploymentFilter,
 		eventFilter:            eventFilter,
+		customUuidOrigin:       customUuidOrigin,
 		internalMetrics:        internalMetrics,
 		containerMetrics:       containerMetrics,
 		counterEvents:          counterEvents,
@@ -262,7 +265,7 @@ func (s *Store) addCounterEvent(envelope *events.Envelope) {
 	if s.deploymentFilter.Enabled(envelope.GetDeployment()) && s.eventFilter.Enabled(envelope) {
 		s.internalMetrics.IncrementInt64(TotalCounterEventsProcessedKey, 1)
 
-		updateCustomMetricOrigin(envelope)
+		s.updateCustomMetricOrigin(envelope)
 		counterEvent := &CounterEvent{
 			Origin:     envelope.GetOrigin(),
 			Timestamp:  envelope.GetTimestamp(),
@@ -338,7 +341,7 @@ func (s *Store) addValueMetric(envelope *events.Envelope) {
 	if s.deploymentFilter.Enabled(envelope.GetDeployment()) && s.eventFilter.Enabled(envelope) {
 		s.internalMetrics.IncrementInt64(TotalValueMetricsProcessedKey, 1)
 
-		updateCustomMetricOrigin(envelope)
+		s.updateCustomMetricOrigin(envelope)
 		valueMetric := &ValueMetric{
 			Origin:     envelope.GetOrigin(),
 			Timestamp:  envelope.GetTimestamp(),
@@ -369,11 +372,11 @@ func (s *Store) metricKey(envelope *events.Envelope) string {
 		buffer.WriteString(envelope.GetContainerMetric().GetApplicationId())
 		buffer.WriteString(strconv.Itoa(int(envelope.GetContainerMetric().GetInstanceIndex())))
 	case events.Envelope_CounterEvent:
-		buffer.WriteString(generateMetricName(envelope, "CounterEvent"))
+		buffer.WriteString(s.generateMetricName(envelope, "CounterEvent"))
 	case events.Envelope_HttpStartStop:
 		buffer.WriteString(envelope.GetHttpStartStop().GetRequestId().String())
 	case events.Envelope_ValueMetric:
-		buffer.WriteString(generateMetricName(envelope, "ValueMetric"))
+		buffer.WriteString(s.generateMetricName(envelope, "ValueMetric"))
 	}
 
 	return buffer.String()
@@ -387,14 +390,14 @@ func (s *Store) metricKey(envelope *events.Envelope) string {
 // which means its from the container
 // 2. Once detected that is from the app container, then add a little more extra info
 // on the metric name like tags, just to differentiate the metrics and emit all of them
-func generateMetricName(envelope *events.Envelope, whichType string) string {
+func (s *Store) generateMetricName(envelope *events.Envelope, whichType string) string {
 	var name string
 	if whichType == "ValueMetric" {
 		name = envelope.GetValueMetric().GetName()
 	} else {
 		name = envelope.GetCounterEvent().GetName()
 	}
-	if *envelope.Origin == "custom" {
+	if *envelope.Origin == s.customUuidOrigin {
 		if envelope.Tags != nil {
 			// These tags need to be sorted before iterating over them as iterating
 			// over a map results in nondeterministic keys being used as a metricKey.
@@ -412,8 +415,8 @@ func generateMetricName(envelope *events.Envelope, whichType string) string {
 	return name
 }
 
-func updateCustomMetricOrigin(envelope *events.Envelope) {
-	if utils.IsValidUuid(*envelope.Origin) {
-		*envelope.Origin = "custom"
+func (s *Store) updateCustomMetricOrigin(envelope *events.Envelope) {
+	if s.customUuidOrigin != "" && utils.IsValidUuid(*envelope.Origin) {
+		*envelope.Origin = s.customUuidOrigin
 	}
 }

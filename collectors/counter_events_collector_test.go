@@ -19,14 +19,15 @@ import (
 
 var _ = Describe("CounterEventsCollector", func() {
 	var (
-		namespace              string
-		environment            string
-		metricsStore           *metrics.Store
-		metricsExpiration      time.Duration
-		metricsCleanupInterval time.Duration
-		deploymentFilter       *filters.DeploymentFilter
-		eventFilter            *filters.EventFilter
-		counterEventsCollector *CounterEventsCollector
+		namespace               string
+		environment             string
+		metricsStore            *metrics.Store
+		metricsExpiration       time.Duration
+		metricsCleanupInterval  time.Duration
+		metricsCustomUuidOrigin string
+		deploymentFilter        *filters.DeploymentFilter
+		eventFilter             *filters.EventFilter
+		counterEventsCollector  *CounterEventsCollector
 
 		counterEventsCollectorDesc *prometheus.Desc
 	)
@@ -36,7 +37,8 @@ var _ = Describe("CounterEventsCollector", func() {
 		environment = "test_environment"
 		deploymentFilter = filters.NewDeploymentFilter([]string{})
 		eventFilter, _ = filters.NewEventFilter([]string{})
-		metricsStore = metrics.NewStore(metricsExpiration, metricsCleanupInterval, deploymentFilter, eventFilter)
+		metricsCustomUuidOrigin = ""
+		metricsStore = metrics.NewStore(metricsExpiration, metricsCleanupInterval, deploymentFilter, eventFilter, metricsCustomUuidOrigin)
 
 		counterEventsCollectorDesc = prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "counter_event", "collector"),

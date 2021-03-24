@@ -21,14 +21,15 @@ import (
 
 var _ = Describe("HttpStartStopCollector", func() {
 	var (
-		namespace              string
-		environment            string
-		metricsStore           *metrics.Store
-		metricsExpiration      time.Duration
-		metricsCleanupInterval time.Duration
-		deploymentFilter       *filters.DeploymentFilter
-		eventFilter            *filters.EventFilter
-		httpStartStopCollector *HttpStartStopCollector
+		namespace               string
+		environment             string
+		metricsStore            *metrics.Store
+		metricsExpiration       time.Duration
+		metricsCleanupInterval  time.Duration
+		metricsCustomUuidOrigin string
+		deploymentFilter        *filters.DeploymentFilter
+		eventFilter             *filters.EventFilter
+		httpStartStopCollector  *HttpStartStopCollector
 
 		requestsMetric                     *prometheus.GaugeVec
 		responseSizeBytesMetric            *prometheus.SummaryVec
@@ -69,7 +70,8 @@ var _ = Describe("HttpStartStopCollector", func() {
 		environment = "test_environment"
 		deploymentFilter = filters.NewDeploymentFilter([]string{})
 		eventFilter, _ = filters.NewEventFilter([]string{})
-		metricsStore = metrics.NewStore(metricsExpiration, metricsCleanupInterval, deploymentFilter, eventFilter)
+		metricsCustomUuidOrigin = ""
+		metricsStore = metrics.NewStore(metricsExpiration, metricsCleanupInterval, deploymentFilter, eventFilter, metricsCustomUuidOrigin)
 
 		requestsMetric = prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{

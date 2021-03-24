@@ -87,6 +87,10 @@ var (
 		"metrics.cleanup-interval", "Metrics clean up interval ($FIREHOSE_EXPORTER_METRICS_CLEANUP_INTERVAL)",
 	).Envar("FIREHOSE_EXPORTER_METRICS_CLEANUP_INTERVAL").Default("2m").Duration()
 
+	metricsCustomUuidOrigin = kingpin.Flag(
+		"metrics.custom-uuid-origin", "Custom name to replace GUID based origins ($FIREHOSE_EXPORTER_METRICS_CUSTOM_UUID_ORIGIN)",
+	).Envar("FIREHOSE_EXPORTER_METRICS_CUSTOM_UUID_ORIGIN").Default("").String()
+
 	skipSSLValidation = kingpin.Flag(
 		"skip-ssl-verify", "Disable SSL Verify ($FIREHOSE_EXPORTER_SKIP_SSL_VERIFY)",
 	).Envar("FIREHOSE_EXPORTER_SKIP_SSL_VERIFY").Default("false").Bool()
@@ -192,7 +196,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	metricsStore := metrics.NewStore(*dopplerMetricExpiration, *metricsCleanupInterval, deploymentFilter, eventFilter)
+	metricsStore := metrics.NewStore(*dopplerMetricExpiration, *metricsCleanupInterval, deploymentFilter, eventFilter, *metricsCustomUuidOrigin)
 
 	if *useLegacyFirehose {
 		startLegacyFirehose(metricsStore)

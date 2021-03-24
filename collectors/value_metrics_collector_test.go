@@ -19,14 +19,15 @@ import (
 
 var _ = Describe("ValueMetricsCollector", func() {
 	var (
-		namespace              string
-		environment            string
-		metricsStore           *metrics.Store
-		metricsExpiration      time.Duration
-		metricsCleanupInterval time.Duration
-		deploymentFilter       *filters.DeploymentFilter
-		eventFilter            *filters.EventFilter
-		valueMetricsCollector  *ValueMetricsCollector
+		namespace               string
+		environment             string
+		metricsStore            *metrics.Store
+		metricsExpiration       time.Duration
+		metricsCleanupInterval  time.Duration
+		metricsCustomUuidOrigin string
+		deploymentFilter        *filters.DeploymentFilter
+		eventFilter             *filters.EventFilter
+		valueMetricsCollector   *ValueMetricsCollector
 
 		valueMetricsCollectorDesc *prometheus.Desc
 	)
@@ -36,7 +37,8 @@ var _ = Describe("ValueMetricsCollector", func() {
 		environment = "test_environment"
 		deploymentFilter = filters.NewDeploymentFilter([]string{})
 		eventFilter, _ = filters.NewEventFilter([]string{})
-		metricsStore = metrics.NewStore(metricsExpiration, metricsCleanupInterval, deploymentFilter, eventFilter)
+		metricsCustomUuidOrigin = ""
+		metricsStore = metrics.NewStore(metricsExpiration, metricsCleanupInterval, deploymentFilter, eventFilter, metricsCustomUuidOrigin)
 
 		valueMetricsCollectorDesc = prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, "value_metric", "collector"),

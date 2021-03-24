@@ -24,6 +24,7 @@ var _ = Describe("ContainerMetricsCollector", func() {
 		metricsStore              *metrics.Store
 		metricsExpiration         time.Duration
 		metricsCleanupInterval    time.Duration
+		metricsCustomUuidOrigin   string
 		deploymentFilter          *filters.DeploymentFilter
 		eventFilter               *filters.EventFilter
 		containerMetricsCollector *ContainerMetricsCollector
@@ -62,7 +63,8 @@ var _ = Describe("ContainerMetricsCollector", func() {
 		environment = "test_environment"
 		deploymentFilter = filters.NewDeploymentFilter([]string{})
 		eventFilter, _ = filters.NewEventFilter([]string{})
-		metricsStore = metrics.NewStore(metricsExpiration, metricsCleanupInterval, deploymentFilter, eventFilter)
+		metricsCustomUuidOrigin = ""
+		metricsStore = metrics.NewStore(metricsExpiration, metricsCleanupInterval, deploymentFilter, eventFilter, metricsCustomUuidOrigin)
 
 		cpuPercentageMetric = prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{

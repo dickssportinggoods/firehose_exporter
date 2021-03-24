@@ -16,11 +16,12 @@ import (
 
 var _ = Describe("Store", func() {
 	var (
-		metricsStore           *Store
-		metricsExpiration      time.Duration
-		metricsCleanupInterval time.Duration
-		deploymentFilter       *filters.DeploymentFilter
-		eventFilter            *filters.EventFilter
+		metricsStore            *Store
+		metricsExpiration       time.Duration
+		metricsCleanupInterval  time.Duration
+		deploymentFilter        *filters.DeploymentFilter
+		eventFilter             *filters.EventFilter
+		metricsCustomUuidOrigin string
 
 		origin          = "fake-origin"
 		boshDeployment  = "fake-deployment-name"
@@ -78,7 +79,8 @@ var _ = Describe("Store", func() {
 	BeforeEach(func() {
 		deploymentFilter = filters.NewDeploymentFilter([]string{})
 		eventFilter, _ = filters.NewEventFilter([]string{})
-		metricsStore = NewStore(metricsExpiration, metricsCleanupInterval, deploymentFilter, eventFilter)
+		metricsCustomUuidOrigin = ""
+		metricsStore = NewStore(metricsExpiration, metricsCleanupInterval, deploymentFilter, eventFilter, metricsCustomUuidOrigin)
 	})
 
 	Describe("GetInternalMetrics", func() {

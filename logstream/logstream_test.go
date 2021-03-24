@@ -1,12 +1,13 @@
 package logstream_test
 
 import (
-	"code.cloudfoundry.org/go-loggregator/rpc/loggregator_v2"
 	"fmt"
+	"time"
+
+	"code.cloudfoundry.org/go-loggregator/rpc/loggregator_v2"
 	"github.com/bosh-prometheus/firehose_exporter/authclient"
 	"github.com/bosh-prometheus/firehose_exporter/logstream"
 	"github.com/cloudfoundry-incubator/uaago"
-	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -30,11 +31,12 @@ var _ = Describe("LogStream", func() {
 		fakeUAA   *fakes.FakeUAA
 		fakeToken string
 
-		metricsExpiration      time.Duration
-		metricsCleanupInterval time.Duration
-		deploymentFilter       *filters.DeploymentFilter
-		eventFilter            *filters.EventFilter
-		metricsStore           *metrics.Store
+		metricsExpiration       time.Duration
+		metricsCleanupInterval  time.Duration
+		deploymentFilter        *filters.DeploymentFilter
+		eventFilter             *filters.EventFilter
+		metricsCustomUuidOrigin string
+		metricsStore            *metrics.Store
 
 		ls            *logstream.LogStream
 		fakeLogStream *logstreamfakes.FakeLogStream
@@ -56,7 +58,8 @@ var _ = Describe("LogStream", func() {
 
 		deploymentFilter = filters.NewDeploymentFilter([]string{})
 		eventFilter, _ = filters.NewEventFilter([]string{})
-		metricsStore = metrics.NewStore(metricsExpiration, metricsCleanupInterval, deploymentFilter, eventFilter)
+		metricsCustomUuidOrigin = ""
+		metricsStore = metrics.NewStore(metricsExpiration, metricsCleanupInterval, deploymentFilter, eventFilter, metricsCustomUuidOrigin)
 
 		for i := 0; i < numEnvelopes; i++ {
 			envelope = &loggregator_v2.Envelope{
